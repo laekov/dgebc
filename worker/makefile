@@ -1,7 +1,20 @@
-default : libhttp include/http
-	echo $(shell pwd)
+CC ?= gcc
+CXX ?= g++
 
-libhttp : thirdparty/libhttp-1.8 lib
+CFLAGS = -lpthread -ldl
+
+OBJS = obj/worker.o
+LIBS = lib/libcivetweb.a
+
+default : bin/main
+
+bin/% : src/%.cc bin ${LIBS} ${OBJS}
+	${CXX} -Iinclude -o $@ $< ${OBJS} ${LIBS} ${CFLAGS}
+
+obj/%.o : src/%.cc include/http obj
+	${CXX} ${CFLAGS} -Iinclude -c -o $@ $<
+
+lib/libcivetweb.a : thirdparty/libhttp-1.8 lib
 	make -C thirdparty/libhttp-1.8 lib
 	ln -f thirdparty/libhttp-1.8/libcivetweb.a lib/libcivetweb.a
 
@@ -21,11 +34,11 @@ endif
 lib : 
 	mkdir -p lib
 
-build : 
-	mkdir -p build
+bin : 
+	mkdir -p bin
 
 obj : 
 	mkdir -p obj
 
 clean : 
-	rm -rf build obj
+	rm -rf bin obj
