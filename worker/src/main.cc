@@ -6,6 +6,7 @@
 #include <msgque.hh>
 
 #include <worker.hh>
+#include <scheduler.hh>
 
 int main(int argc, char* args[]) {
 	char *port = "8080";
@@ -29,9 +30,8 @@ int main(int argc, char* args[]) {
 		pthread_create(worker_handles + i, 0, DGEBC::workerMain,
 				       static_cast<void*>(queues));
 	}
-	for (int i = 0; i < num_workers; ++ i) {
-		pthread_join(worker_handles[i], 0);
-	}
+	// Optional: execute another pthread to run scheduler
+	DGEBC::schedulerMain(static_cast<void*>(queues));
 	mg_stop(ctx);
 	return 0;
 }

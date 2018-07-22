@@ -4,6 +4,7 @@
 #include <queue>
 #include <semaphore.h>
 #include <pthread.h>
+#include <assert.h>
 
 namespace DGEBC {
 	/* MsgQue class:
@@ -27,15 +28,17 @@ namespace DGEBC {
 			inline DataType de() {
 				DataType result;
 				sem_wait(&data_ready_sem);
-				result = q.front();
 				pthread_mutex_lock(&editing_mtx);
+				result = q.front();
 				q.pop();
 				pthread_mutex_unlock(&editing_mtx);
+				return result;
 			}
 			inline void en(const DataType& d) {
 				pthread_mutex_lock(&editing_mtx);
 				q.push(d);
 				pthread_mutex_unlock(&editing_mtx);
+				sem_post(&data_ready_sem);
 			}
 	};
 };
