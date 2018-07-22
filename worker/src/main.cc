@@ -5,6 +5,7 @@
 #include <task.hh>
 #include <msgque.hh>
 
+#include <proxy.hh>
 #include <worker.hh>
 #include <scheduler.hh>
 
@@ -22,6 +23,7 @@ int main(int argc, char* args[]) {
 	struct mg_context *ctx;
 	struct mg_callbacks callbacks;
 	memset(&callbacks, 0, sizeof(callbacks));
+    callbacks.begin_request = DGEBC::proxyHandlerWrapper;
 	ctx = mg_start(&callbacks, 0, options);
 	pthread_t* worker_handles = new pthread_t[num_workers];
 	// queues: {todo_queue, result_queue}
@@ -31,6 +33,9 @@ int main(int argc, char* args[]) {
 				       static_cast<void*>(queues));
 	}
 	// Optional: execute another pthread to run scheduler
+	pthread_t proxy_handle;
+	pthread_create(&proxy_handle, 0, DGEBC::proxyMain,
+			static_cast<void*>(queues));
 	DGEBC::schedulerMain(static_cast<void*>(queues));
 	mg_stop(ctx);
 	return 0;

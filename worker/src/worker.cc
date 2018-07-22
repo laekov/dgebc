@@ -6,11 +6,9 @@
 #include <task.hh>
 #include <msgque.hh>
 
+#include <dummy.hh>
+
 namespace DGEBC {
-	Task dummyCalc(Task t) {
-		t.score = rand();
-		return t;
-	}
 	
 	void* workerMain(void* args) {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);

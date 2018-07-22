@@ -3,7 +3,7 @@ CXX ?= g++
 
 CFLAGS = -lpthread -ldl
 
-OBJS = obj/worker.o obj/scheduler.o
+OBJS = obj/worker.o obj/scheduler.o obj/proxy.o
 LIBS = lib/libcivetweb.a
 
 default : bin/main
@@ -11,7 +11,7 @@ default : bin/main
 bin/% : src/%.cc bin ${LIBS} ${OBJS}
 	${CXX} -Iinclude -o $@ $< ${OBJS} ${LIBS} ${CFLAGS}
 
-obj/%.o : src/%.cc include/libcivet.h obj
+obj/%.o : src/%.cc include/civetweb.h obj
 	${CXX} ${CFLAGS} -Iinclude -c -o $@ $<
 
 lib/libcivetweb.a : thirdparty/libhttp-1.8 lib
