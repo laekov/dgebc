@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cstdlib>
 
 #include <worker.hh>
 
@@ -9,7 +8,6 @@
 #include <dummy.hh>
 
 namespace DGEBC {
-	
 	void* workerMain(void* args) {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
 		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;

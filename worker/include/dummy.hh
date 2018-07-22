@@ -3,6 +3,7 @@
 #include <cstdlib>
 
 #include <task.hh>
+
 namespace DGEBC {
 	inline Task dummyCalc(Task t) {
 		t.score = rand();
