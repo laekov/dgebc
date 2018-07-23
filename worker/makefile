@@ -32,13 +32,16 @@ ifeq (,$(wildcard thirdparty/v1.8.tar.gz))
 endif
 
 lib : 
-	mkdir -p lib
-
-bin : 
-	mkdir -p bin
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif
 
 obj : 
-	mkdir -p obj
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif
 
-clean : 
-	rm -rf bin obj
+bin : 
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif

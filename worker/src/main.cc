@@ -10,6 +10,8 @@
 #include <scheduler.hh>
 
 int main(int argc, char* args[]) {
+	char *server_addr = "localhost";
+	char *server_port = "8080";
 	char *port = "8080";
 	int num_workers = 1;
 	for (int i = 1; i < argc; ++ i) {
@@ -17,6 +19,10 @@ int main(int argc, char* args[]) {
 			port = args[++ i];
 		} else if (!strcmp(args[i], "-w")) {
 			num_workers = atoi(args[++ i]);
+		} else if (!strcmp(args[i], "-h")) {
+			server_addr = args[++ i];
+		} else if (!strcmp(args[i], "-q")) {
+			server_port = args[++ i];
 		}
 	}
     const char *options[] = {"listening_ports", port, NULL};
