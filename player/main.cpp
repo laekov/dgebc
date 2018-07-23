@@ -1,12 +1,11 @@
 #include "../engine/engine.h"
-#include <iostream>
-using namespace std;
+#include "dialog.h"
+#include <QApplication>
 
-int main()
+int main(int argc, char *argv[])
 {
-	DGEBC::Engine e;
-	cout << "score: " << e.score("233") << endl;
-	cout << "combine: " << e.combine("233", "666") << endl;
-	cout << "mutate: " << e.mutate("233") << endl;
-	return 0;
+	QApplication a(argc, argv);
+	Dialog d;
+	d.show();
+	return a.exec();
 }

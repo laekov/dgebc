@@ -4,7 +4,7 @@
 #include <string>
 
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
-#include <QWidget>
+#include <QLayout>
 #endif // !DGEBC_ENGINE_NO_VISUALIZE
 
 namespace DGEBC
@@ -17,9 +17,10 @@ namespace DGEBC
 		
 		output_t score(const input_t &in);
 		input_t combine(const input_t &in1, const input_t &in2);
+		input_t initial();
 		input_t mutate(const input_t &in);
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
-		QWidget *visualize(const input_t &in);
+		QLayout *visualize(const input_t &in);
 #endif // !DGEBC_ENGINE_NO_VISUALIZE
 	};
 }
