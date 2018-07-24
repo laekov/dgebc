@@ -1,7 +1,7 @@
 CC ?= gcc
 CXX ?= g++
 
-CFLAGS = -lpthread -ldl
+CFLAGS = -std=c++11 -lpthread -ldl -g
 
 OBJS = obj/worker.o obj/scheduler.o obj/proxy.o
 LIBS = lib/libcivetweb.a
