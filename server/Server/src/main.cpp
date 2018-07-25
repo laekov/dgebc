@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     listenerSettings->beginGroup("listener");
 
     // start HTTP server
-    HttpListener *listener = new HttpListener(listenerSettings, new Server(&app), &app);
+    new HttpListener(listenerSettings, new Server(&app), &app);
 
     return app.exec();
 }
