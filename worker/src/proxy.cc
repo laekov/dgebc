@@ -25,11 +25,7 @@ namespace DGEBC {
 			mg_get_var(post_data, post_data_len, "score", buf, sizeof(buf));
 			t.score = atof(buf);
 			task_q->en(t);
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/plain\r\n"
-					"Content-Length: 0\r\n"     
-					"\r\n");
+			sprintf(buf, "Done\n");
 		} else if (!strcmp(ri->uri, "/status")) {
 			sprintf(buf, "total tasks: %d\n"
 					"finished tasks: %d\n"
@@ -37,17 +33,17 @@ namespace DGEBC {
 					task_q->tot(),
 					res_q->tot(),
 					task_q->sz());
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/plain\r\n"
-					"Content-Length: %d\r\n"     
-					"\r\n"
-					"%s",
-					strlen(buf), buf);
 		}
+		mg_printf(conn,
+				"HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/plain\r\n"
+				"Content-Length: %d\r\n"     
+				"\r\n"
+				"%s",
+				strlen(buf), buf);
 	}
 	void* proxyMain(void* args) {
-	 	task_q = static_cast<MsgQue<Task>*>(args);
+		task_q = static_cast<MsgQue<Task>*>(args);
 		res_q = static_cast<MsgQue<Task>*>(args) + 1;
 	}
 };
