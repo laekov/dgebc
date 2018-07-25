@@ -1,21 +1,22 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2018-07-23T05:10:57
-#
-#-------------------------------------------------
+QT          += core
+QT          -= gui
+QT          += network
 
-QT       += core gui
-QT       += network
+TARGET       = Server
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+CONFIG      += console
 
-TARGET = Server
-TEMPLATE = app
+TEMPLATE     = app
 
+SOURCES     += \
+    src/main.cpp \
+    src/server.cpp \
+    src/worker.cpp
 
-SOURCES += main.cpp\
-        Server.cpp
+HEADERS     += \
+    src/server.h \
+    src/worker.h
 
-HEADERS  += Server.h
+OTHER_FILES += etc/config.ini
 
-FORMS    += Server.ui
+include(../QtWebApp/QtWebApp/httpserver/httpserver.pri)
