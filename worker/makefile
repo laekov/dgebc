@@ -1,7 +1,7 @@
 CC ?= gcc
 CXX ?= g++
 
-CFLAGS = -lpthread -ldl
+CFLAGS = -std=c++11 -lpthread -ldl -g
 
 OBJS = obj/worker.o obj/scheduler.o obj/proxy.o
 LIBS = lib/libcivetweb.a
@@ -32,13 +32,16 @@ ifeq (,$(wildcard thirdparty/v1.8.tar.gz))
 endif
 
 lib : 
-	mkdir -p lib
-
-bin : 
-	mkdir -p bin
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif
 
 obj : 
-	mkdir -p obj
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif
 
-clean : 
-	rm -rf bin obj
+bin : 
+ifeq (,$(wildcard $@))
+	mkdir -p $@
+endif

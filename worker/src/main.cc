@@ -10,6 +10,8 @@
 #include <scheduler.hh>
 
 int main(int argc, char* args[]) {
+	char *server_addr = "localhost";
+	char *server_port = "8080";
 	char *port = "8080";
 	int num_workers = 1;
 	for (int i = 1; i < argc; ++ i) {
@@ -17,6 +19,10 @@ int main(int argc, char* args[]) {
 			port = args[++ i];
 		} else if (!strcmp(args[i], "-w")) {
 			num_workers = atoi(args[++ i]);
+		} else if (!strcmp(args[i], "-h")) {
+			server_addr = args[++ i];
+		} else if (!strcmp(args[i], "-q")) {
+			server_port = args[++ i];
 		}
 	}
     const char *options[] = {"listening_ports", port, NULL};
@@ -26,16 +32,20 @@ int main(int argc, char* args[]) {
     callbacks.begin_request = DGEBC::proxyHandlerWrapper;
 	ctx = mg_start(&callbacks, 0, options);
 	pthread_t* worker_handles = new pthread_t[num_workers];
+
 	// queues: {todo_queue, result_queue}
 	DGEBC::MsgQue<DGEBC::Task> queues[2];
 	for (int i = 0; i < num_workers; ++ i) {
 		pthread_create(worker_handles + i, 0, DGEBC::workerMain,
 				       static_cast<void*>(queues));
 	}
+
 	// Optional: execute another pthread to run scheduler
 	pthread_t proxy_handle;
 	pthread_create(&proxy_handle, 0, DGEBC::proxyMain,
 			static_cast<void*>(queues));
+
+	DGEBC::setServer(server_addr, server_port);
 	DGEBC::schedulerMain(static_cast<void*>(queues));
 	mg_stop(ctx);
 	return 0;

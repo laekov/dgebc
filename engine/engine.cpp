@@ -1,9 +1,7 @@
 #include "engine.h"
-#include <cstdlib>
+#include "world.h"
 
-#ifndef DGEBC_ENGINE_NO_VISUALIZE
-#include <QLabel>
-#endif // !DGEBC_ENGINE_NO_VISUALIZE
+std::string engine_input_gene;
 
 namespace DGEBC
 {
@@ -12,38 +10,33 @@ namespace DGEBC
 	using namespace std;
 	output_t Engine::score(const input_t &in)
 	{
+		engine_input_gene = in;
 		try
 		{
-			output_t x = stold(in);
-			return 1000 / (pow(x - 250, 2) / 1000 + 1);
+			World world;
+			while(1) world.step();
 		}
-		catch(exception e)
+		catch(float f)
 		{
-			return 0;
+			return f;
 		}
 	}
 	input_t Engine::combine(const input_t &in1, const input_t &in2)
 	{
-		output_t x = stold(in1), y = stold(in2);
-		return to_string((x + y) / 2);
+		return in1;
 	}
 	input_t Engine::initial()
 	{
-		return to_string(rand() * 1000. / RAND_MAX);
+		return "3f7e34b73de1f23f3f2e82c83f020de03ea46e673f43cea53eea79fa3f3afb513f07c6be3e3e5e1d3f2026903f1472463d5ef3c23e9355a53e4d8d753e0ba1453ee648843e002f3b3f1481213f40c9dc3f5ec4cb3db678e93e78b8233f2c98ec3e01f3753f1301163e9ada783ec0051c3f5975043f1cd1b43ecb93543df34e603e73405f3f79c6c33edbcce53e6aa3103f67d6c73e80684e3f240dc33f1687f5";
 	}
 	input_t Engine::mutate(const input_t &in)
 	{
-		output_t x = stold(in);
-		return to_string(x - 10 + rand() * 20. / RAND_MAX);
+		return in;
 	}
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
 	QLayout *Engine::visualize(const input_t &in)
 	{
-		QVBoxLayout *lo = new QVBoxLayout();
-		lo->addWidget(new QLabel(("Gene: " + in).c_str()));
-		lo->addWidget(new QLabel(QString("Score: %1").arg(score(in))));
-		lo->addStretch();
-		return lo;
+		return new QVBoxLayout();
 	}
 #endif // !DGEBC_ENGINE_NO_VISUALIZE
 }
