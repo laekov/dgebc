@@ -1,3 +1,7 @@
-Makefile
+*.user
+*~*
+moc_*
 *.o
+.qmake.stash
+Makefile
 engine

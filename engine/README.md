@@ -1,1 +1,2 @@
-Please `#define DGEBC_ENGINE_NO_VISUALIZE` if you do not compile the engine with Qt.
+This directory is cloned from https://github.com/macrosoft/carbox2d
+See its license for details.
