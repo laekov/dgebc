@@ -1,5 +1,8 @@
 #include "engine.h"
 #include "world.h"
+#include <sstream>
+#include <cstdlib>
+#include <iomanip>
 
 std::string engine_input_gene;
 
@@ -7,6 +10,8 @@ namespace DGEBC
 {
 	typedef Engine::input_t input_t;
 	typedef Engine::output_t output_t;
+	typedef Engine::chrome_arr_t chrome_arr_t;
+	static constexpr const int CHROME_LEN = Engine::CHROME_LEN;
 	using namespace std;
 	output_t Engine::score(const input_t &in)
 	{
@@ -27,7 +32,10 @@ namespace DGEBC
 	}
 	input_t Engine::initial()
 	{
-		return "3f7e34b73de1f23f3f2e82c83f020de03ea46e673f43cea53eea79fa3f3afb513f07c6be3e3e5e1d3f2026903f1472463d5ef3c23e9355a53e4d8d753e0ba1453ee648843e002f3b3f1481213f40c9dc3f5ec4cb3db678e93e78b8233f2c98ec3e01f3753f1301163e9ada783ec0051c3f5975043f1cd1b43ecb93543df34e603e73405f3f79c6c33edbcce53e6aa3103f67d6c73e80684e3f240dc33f1687f5";
+		chrome_arr_t chrome;
+		for(int i = 0; i < CHROME_LEN; i++)
+			chrome[i] = 1. * rand() / RAND_MAX;
+		return chrome_to_gene(chrome);
 	}
 	input_t Engine::mutate(const input_t &in)
 	{
@@ -37,6 +45,23 @@ namespace DGEBC
 	QLayout *Engine::visualize(const input_t &in)
 	{
 		return new QVBoxLayout();
+	}
+	void Engine::gene_to_chrome(const input_t &gene, chrome_arr_t chrome)
+	{
+		for(int i = 0; i < CHROME_LEN; i++)
+		{
+			unsigned tmp = stoll(gene.substr(i * 8, 8), NULL, 16);
+			chrome[i] = *(float *) &tmp;
+		}
+	}
+	input_t Engine::chrome_to_gene(chrome_arr_t chrome)
+	{
+		using namespace std;
+		stringstream stream;
+		stream << setfill('0') << setw(8) << hex;
+		for(int i = 0; i < CHROME_LEN; i++)
+			stream << *(unsigned *) &chrome[i];
+		return stream.str();
 	}
 #endif // !DGEBC_ENGINE_NO_VISUALIZE
 }

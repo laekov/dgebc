@@ -22,6 +22,12 @@ namespace DGEBC
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
 		QLayout *visualize(const input_t &in);
 #endif // !DGEBC_ENGINE_NO_VISUALIZE
+
+		static constexpr const int CHROME_LEN = 40;
+		typedef float chrome_arr_t[40];
+	private:
+		void gene_to_chrome(const input_t &gene, chrome_arr_t chrome);
+		input_t chrome_to_gene(chrome_arr_t chrome);
 	};
 }
 
