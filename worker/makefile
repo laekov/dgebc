@@ -1,12 +1,15 @@
 CC ?= gcc
 CXX ?= g++
 
-CFLAGS = -std=c++11 -lpthread -ldl -g
+CFLAGS = -std=c++11 -lpthread -ldl -g -DDGEBC_ENGINE_NO_VISUALIZE
 
 OBJS = obj/worker.o obj/scheduler.o obj/proxy.o
-LIBS = lib/libcivetweb.a
+LIBS = lib/libcivetweb.a ../engine/libengine.so ../engine/lib/libBox2D.a
 
-default : bin/main
+default: bin/main
+
+run: bin/main
+	LD_LIBRARY_PATH=../engine bin/main
 
 bin/% : src/%.cc bin ${LIBS} ${OBJS}
 	${CXX} -Iinclude -o $@ $< ${OBJS} ${LIBS} ${CFLAGS}

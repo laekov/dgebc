@@ -9,7 +9,30 @@
 #include <worker.hh>
 #include <scheduler.hh>
 
+#include <../../engine/engine.h>
+
 int main(int argc, char* args[]) {
+	{
+		using namespace std;
+		srand(time(0));
+		// Test Engine
+		cout << "========== Begin Engine Test ==========" << endl;
+		DGEBC::Engine e;
+		string gene = e.initial();
+		cout << "initial gene: " << gene << endl;
+		double score = e.score(gene);
+		cout << "initial score: " << score << endl;
+		string new_gene = e.mutate(e.mutate(e.mutate(gene)));
+		cout << "mutated gene: " << gene << endl;
+		double new_score = e.score(new_gene);
+		cout << "mutated score: " << new_score << endl;
+		string combined_gene = e.combine(gene, new_gene);
+		cout << "combined gene: " << gene << endl;
+		double combined_score = e.score(combined_gene);
+		cout << "combined score: " << combined_score << endl;
+		cout << "==========  End Engine Test  ==========" << endl;
+	}
+	
 	char *server_addr = "localhost";
 	char *server_port = "8080";
 	char *port = "8080";

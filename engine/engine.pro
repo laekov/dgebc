@@ -1,5 +1,8 @@
-TEMPLATE      = app
+TEMPLATE      = lib
+#CONFIG += staticlib
 CONFIG += c++11
+#QMAKE_CXXFLAGS += -static
+#QMAKE_LFLAGS += -static
 QT  += widgets opengl
 HEADERS       = \
     world.h \
@@ -12,7 +15,7 @@ HEADERS       = \
     render.h
     
 SOURCES       = \
-                main.cpp \
+#                main.cpp \
     world.cpp \
     track.cpp \
     mainwindow.cpp \
