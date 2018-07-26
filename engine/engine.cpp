@@ -28,7 +28,16 @@ namespace DGEBC
 	}
 	input_t Engine::combine(const input_t &in1, const input_t &in2)
 	{
-		return in1;
+		chrome_arr_t c1, c2;
+		gene_to_chrome(in1, c1);
+		gene_to_chrome(in2, c2);
+		int l = rand() % CHROME_LEN, r = rand() % CHROME_LEN;
+		for(int i = l;; i = (i + 1) % CHROME_LEN)
+		{
+			c1[i] = c2[i];
+			if(i == r) break;
+		}
+		return chrome_to_gene(c1);
 	}
 	input_t Engine::initial()
 	{
@@ -39,7 +48,10 @@ namespace DGEBC
 	}
 	input_t Engine::mutate(const input_t &in)
 	{
-		return in;
+		chrome_arr_t chrome;
+		gene_to_chrome(in, chrome);
+		chrome[rand() % CHROME_LEN] = 1. * rand() / RAND_MAX;
+		return chrome_to_gene(chrome);
 	}
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
 	QLayout *Engine::visualize(const input_t &in)
