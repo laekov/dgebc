@@ -2,9 +2,9 @@
 
 #include "render.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(std::string gene, QWidget *parent) :
     QMainWindow(parent) {
-    world = new World();
+    world = new World(true, gene);
     render = new Render(world, this);
     connect(world, SIGNAL(creteNewCar()), render, SLOT(createCarCallList()));
     connect(world, SIGNAL(freeCallListNumber(uint)), render,
@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     resize(800, 600);
     setWindowTitle(tr("Carbox2d"));
     createMenu();
-    speed = SPEED_NORMAL;
+    speed = SPEED_FAST;
     startTimer(1000/30);
     render->updateGL();
     render->createCarCallList();

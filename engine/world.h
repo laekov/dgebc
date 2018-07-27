@@ -13,7 +13,7 @@ class ContactListener;
 class World: public QObject {
     Q_OBJECT
 public:
-    World();
+    World(bool isRender, std::string gene);
     ~World();
 
     void addSparksList(const int impulses, const b2Vec2 pos,
@@ -51,6 +51,8 @@ private:
     void init();
     void updateSparks();
 
+	bool isDied, isRender;
+	std::string gene;
     GeneticAlgorithm *algorithm;
     b2World *b2world;
     Car *car;

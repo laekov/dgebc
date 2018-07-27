@@ -11,7 +11,7 @@ Render::Render(World *pWorld, QWidget *parent) :
     avgScore = NULL;
     maxScore = NULL;
     genrationNum = 0;
-    setMinimumSize(640, 480);
+    setMinimumSize(320, 240);
     prepareTableBoard();
     setSpeed(2);
 }
@@ -124,6 +124,7 @@ void Render::drawCircle(const b2Vec2& center, float32 radius,
 }
 
 void Render::drawGrid() {
+	return;
     glDisable(GL_LINE_SMOOTH);
     glBegin(GL_LINES);
     for (int y = getBottomBound(); y <= getTopBound(); y++) {
@@ -147,6 +148,7 @@ void Render::drawGrid() {
 }
 
 void Render::drawGraph() {
+	return;
     GeneticAlgorithm *algorithm = world->getAlgorithm();
     int count = algorithm->getGenerationNum();
     if (!count)
@@ -169,6 +171,7 @@ void Render::drawGraph() {
 }
 
 void Render::drawParents() {
+	return;
     if (world->getAlgorithm()->getCarParentCallListNumber(0)) {
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
@@ -245,6 +248,7 @@ void Render::drawSparks() {
 }
 
 void Render::drawTable() {
+	return;
     int stepY = qMin((height() - 1)/33, 14);
     qglColor(QColor(255, 255, 200, 192));
     glBegin(GL_QUADS);
@@ -312,8 +316,8 @@ void Render::drawText() {
     font.setPixelSize(16);
     QFontMetrics fmGeneration(font);
     int generationNumber = world->getAlgorithm()->getGenerationNum();
-    str = tr("Generation: %1").arg(QString::number(generationNumber));
-    renderText(width()/2 - fmGeneration.width(str)/2, 20, str, font);
+    // str = tr("Generation: %1").arg(QString::number(generationNumber));
+    // renderText(width()/2 - fmGeneration.width(str)/2, 20, str, font);
     qglColor(Qt::blue);
     if (speed == 0) {
         str = tr("[PAUSE]");

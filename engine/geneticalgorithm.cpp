@@ -7,7 +7,9 @@
 #include <QMessageBox>
 #include <QDebug>
 
-GeneticAlgorithm::GeneticAlgorithm() {
+GeneticAlgorithm::GeneticAlgorithm(std::string gene) {
+	this->gene = gene;
+	
 	maxScore.push_back(0);
 	avgScore.push_back(0);
 }
@@ -94,11 +96,10 @@ float GeneticAlgorithm::getWheelRadius(const int index) {
 }
 
 void GeneticAlgorithm::init() {
-	extern std::string engine_input_gene;
 	float input_chrome[CROMES_SIZE];
 	for(int i = 0; i < CROMES_SIZE; i++)
 	{
-		unsigned tmp = stoll(engine_input_gene.substr(i * 8, 8), NULL, 16);
+		unsigned tmp = stoll(gene.substr(i * 8, 8), NULL, 16);
 		input_chrome[i] = *(float *) &tmp;
 	}
 	for (int i = 0; i < POP_SIZE; i++) {

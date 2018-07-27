@@ -4,7 +4,10 @@
 #include <cstdlib>
 #include <iomanip>
 
-std::string engine_input_gene;
+#ifndef DGEBC_ENGINE_NO_VISUALIZE
+#include <QLabel>
+#include "mainwindow.h"
+#endif // !DGEBC_ENGINE_NO_VISUALIZE
 
 namespace DGEBC
 {
@@ -15,10 +18,9 @@ namespace DGEBC
 	using namespace std;
 	output_t Engine::score(const input_t &in)
 	{
-		engine_input_gene = in;
 		try
 		{
-			World world;
+			World world(false, in);
 			while(1) world.step();
 		}
 		catch(float f)
@@ -56,8 +58,11 @@ namespace DGEBC
 #ifndef DGEBC_ENGINE_NO_VISUALIZE
 	QLayout *Engine::visualize(const input_t &in)
 	{
-		return new QVBoxLayout();
+		QVBoxLayout *lo = new QVBoxLayout();
+		lo->addWidget(new MainWindow(in, NULL));
+		return lo;
 	}
+#endif // !DGEBC_ENGINE_NO_VISUALIZE
 	void Engine::gene_to_chrome(const input_t &gene, chrome_arr_t chrome)
 	{
 		for(int i = 0; i < CHROME_LEN; i++)
@@ -75,5 +80,4 @@ namespace DGEBC
 			stream << *(unsigned *) &chrome[i];
 		return stream.str();
 	}
-#endif // !DGEBC_ENGINE_NO_VISUALIZE
 }

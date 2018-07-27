@@ -3,9 +3,13 @@
 #include <QDebug>
 #include "world.h"
 
-World::World() {
+World::World(bool isRender, std::string gene) {
+	isDied = false;
+	this->gene = gene;
+	this->isRender = isRender;
+	
     qsrand(QDateTime::currentDateTime().toTime_t());
-    algorithm = new GeneticAlgorithm();
+    algorithm = new GeneticAlgorithm(gene);
     connect(algorithm, SIGNAL(freeCallListNumber(uint)),
             SIGNAL(freeCallListNumber(uint)));
     algorithm->init();
@@ -61,6 +65,7 @@ float World::getUptime() {
 }
 
 void World::step() {
+	if(isDied) return;
     car->update();
     updateSparks();
     b2world->Step(TIME_STEP, ITERATIONS, ITERATIONS);
@@ -106,11 +111,18 @@ void World::init() {
 //slots
 
 void World::carStoped() {
-	throw car->getMaxPossition();
-    algorithm->setScoreAndTime(car->getMaxPossition(), car->getTime());
-    algorithm->nextCar();
-    destroy();
-    init();
+	if(isRender)
+	{
+		isDied = true;
+	}
+	else
+	{
+		throw car->getMaxPossition();
+	}
+    // algorithm->setScoreAndTime(car->getMaxPossition(), car->getTime());
+    // algorithm->nextCar();
+    // destroy();
+    // init();
 }
 
 //private

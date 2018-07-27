@@ -9,7 +9,7 @@
 class GeneticAlgorithm: public QObject {
     Q_OBJECT
 public:
-    GeneticAlgorithm();
+    GeneticAlgorithm(std::string gene);
 
     float getAvgScore(const int index);
     float getAxleAngle(const int index);
@@ -83,6 +83,7 @@ private:
     float times[POP_SIZE];
     int currentCar;
     int generationNum;
+	std::string gene;
 };
 
 #endif // GENETICALGORITHM_H
