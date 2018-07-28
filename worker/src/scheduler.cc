@@ -9,8 +9,7 @@
 
 #include <task.hh>
 #include <msgque.hh>
-
-#include <dummy.hh>
+#include <../../engine/engine.h>
 
 namespace DGEBC {
 	inline bool operator <(const Task& a, const Task& b) {
@@ -76,13 +75,20 @@ namespace DGEBC {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
 		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
 
+		DGEBC::Engine engine;
+
+		Task init_t;
+		init_t.gene = engine.initial();
+		init_t.score = -1;
+		task_q->en(init_t);
+
 		// TODO(laekov): make it variable under server's control
 		static const int group_size = 103;
 		static const int mutate_const = 10;
 		static const int combine_const = 10;
 		static const int max_iter = 100;
 
-		double current_max(.000001);
+		double current_max(.1);
 		vector<Task> survivor;
 		registerWorker();
 		for (int cnt = 0; ; ++ cnt) {
@@ -101,7 +107,7 @@ namespace DGEBC {
 				}
 				for (int j = 0; j < num_mutate; ++ j) {
 					Task d;
-					d.gene = dummyMutate(c.gene);
+					d.gene = engine.mutate(c.gene);
 					d.score = -1;
 					d.parents.push_back(c.gene);
 					task_q->en(d);
@@ -116,7 +122,7 @@ namespace DGEBC {
 					for (int j = 0; j < num_combine; ++ j) {
 						Task e;
 						int k(rand() % survivor.size());
-						e.gene = dummyCombine(
+						e.gene = engine.combine(
 								survivor[k].gene,
 								c.gene);
 						e.score = -1;

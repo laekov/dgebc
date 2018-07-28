@@ -6,3 +6,4 @@ moc_*
 Makefile
 engine
 libengine.a
+libengine.so*

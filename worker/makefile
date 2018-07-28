@@ -9,9 +9,9 @@ LIBS = lib/libcivetweb.a ../engine/libengine.so ../engine/lib/libBox2D.a
 default: bin/main
 
 run: bin/main
-	LD_LIBRARY_PATH=../engine bin/main
+	LD_LIBRARY_PATH=../engine bin/main -w 90 
 
-bin/% : src/%.cc bin ${LIBS} ${OBJS}
+bin/% : src/%.cc bin ${LIBS} ${OBJS} 
 	${CXX} -Iinclude -o $@ $< ${OBJS} ${LIBS} ${CFLAGS}
 
 obj/%.o : src/%.cc include/civetweb.h obj
