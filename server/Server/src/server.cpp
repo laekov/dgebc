@@ -37,7 +37,6 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         QUrl url = QUrl();
 		url.setHost(addr);
 		url.setPort(port.toInt());
-		std::cerr << url.port() << "\n";
         Worker w = Worker(url);
         mutex.lock();
         allActiveWorkers.insert(url, w);
@@ -49,7 +48,10 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("%1,").arg(QString(it.value().url.toString())).toLatin1(), false);
+			QUrl url = it.value().url;
+			QString content = QString("%1 %2\n").arg(url.host())
+				.arg(url.port());
+            response.write(content.toLatin1(), false);
         }
 
         mutex.unlock();
