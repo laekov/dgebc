@@ -12,7 +12,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
-    timer->start(10000);
+    timer->start(ONE_MINUTE);
 
     mutex.unlock();
 }
@@ -32,8 +32,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         // a new worker emerges
         QString sourceAddress = request.getPeerAddress().toString();
 		QString addr = sourceAddress.split(":").takeLast();
-        QString port = QString(
-				request.getParameter(QString("port").toLatin1()));
+        QString port = QString(request.getParameter(QString("port").toLatin1()));
         QUrl url = QUrl();
 		url.setHost(addr);
 		url.setPort(port.toInt());
@@ -60,7 +59,11 @@ void Server::service(HttpRequest &request, HttpResponse &response)
     else if (path == "/dump")
     {
         QString sourceAddress = request.getPeerAddress().toString();
-        QUrl url = QUrl(sourceAddress.split(":").takeLast());
+        QString addr = sourceAddress.split(":").takeLast();
+        QString port = QString(request.getParameter(QString("port").toLatin1()));
+        QUrl url = QUrl();
+        url.setHost(addr);
+        url.setPort(port.toInt());
         QByteArray gene = request.getParameter(QString("gene").toLatin1());
         QByteArray score = request.getParameter(QString("score").toLatin1());
 
@@ -147,7 +150,7 @@ void Server::heartBeat()
 
             if (pReply->readAll() != "233")
             {
-                // timeout == dead
+                // error == dead
                 qDebug() << "Server: kill worker (error)" << it.key().toString();
                 toDelete.append(it.key());
                 disconnect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
