@@ -1,3 +1,4 @@
+#include <iostream>
 #include <QEventLoop>
 #include <QMapIterator>
 #include <QNetworkReply>
@@ -30,7 +31,13 @@ void Server::service(HttpRequest &request, HttpResponse &response)
     {
         // a new worker emerges
         QString sourceAddress = request.getPeerAddress().toString();
-        QUrl url = QUrl(sourceAddress.split(":").takeLast());
+		QString addr = sourceAddress.split(":").takeLast();
+        QString port = QString(
+				request.getParameter(QString("port").toLatin1()));
+        QUrl url = QUrl();
+		url.setHost(addr);
+		url.setPort(port.toInt());
+		std::cerr << url.port() << "\n";
         Worker w = Worker(url);
         mutex.lock();
         allActiveWorkers.insert(url, w);
