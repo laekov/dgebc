@@ -1,3 +1,4 @@
+#include <ctime>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -14,6 +15,7 @@
 
 namespace DGEBC {
 	char *server_addr, *server_port;
+	char *worker_port;
 
 	using std::pair;
 	using std::vector;
@@ -27,13 +29,24 @@ namespace DGEBC {
 		server_port = port;
 	}
 
+	void setWorkerPort(char* port) {
+		worker_port = port;
+	}
+
 	void registerWorker() {
 		struct mg_connection *conn;
 		char buf[4096];
 		conn = mg_download(server_addr, atoi(server_port), 0, buf, sizeof(buf),
 				"GET /register_worker?port=%s HTTP/1.0\r\nHost: %s\r\n\r\n",
-				server_port, server_addr);
+				worker_port, server_addr);
 		mg_close_connection(conn);
+	}
+
+	inline std::ostream& dgebc_log() {
+		time_t t(time(0));
+		char* tstr(ctime(&t));
+		tstr[strlen(tstr) - 1] = 0;
+		return std::cerr << tstr << "\t";
 	}
 
 	void updateClientList() {
@@ -51,10 +64,24 @@ namespace DGEBC {
 		string addr, port;
 		while (response >> addr >> port) {
 			fellows.push_back(pair<string, string>(addr, port));
-			std::cerr << addr << ":" << port << "\n";
 		}
-		fellows.push_back(pair<string, string>("localhost", "8080"));
-		fellows.push_back(pair<string, string>("localhost", "8081"));
+		dgebc_log() << "Working with " << fellows.size() 
+			<< " fellows\n";
+	}
+
+	void* daemonMain(void* args) {
+		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
+		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
+		int c_sz_report(0);
+		while (1) {
+			registerWorker();
+			updateClientList();
+			sleep(1);
+			if (!c_sz_report) {
+				dgebc_log() << "queue size: " << task_q->sz() + res_q->sz()
+					<< "\ttotal tasks: " << task_q->tot() << "\n";
+			}
+		}
 	}
 
 	void spreadGene(Task t) {
@@ -94,14 +121,10 @@ namespace DGEBC {
 		static const double spread_ratio = 0.7;
 
 		vector<Task> survivor;
-		registerWorker();
 		for (int cnt = 0; ; ++ cnt) {
-			if (cnt % 1031 == 0) {
-				updateClientList();
-			} else if (cnt % 97 == 0) {
+			if (cnt % 97 == 96) {
 				for (auto it: survivor) {
 					if (it.score > current_max * spread_ratio) {
-						std::cerr << "Spread score = " << it.score << "\n";
 						spreadGene(it);
 					}
 				}
@@ -115,7 +138,7 @@ namespace DGEBC {
 				for (int j = 0; j < num_mutate; ++ j) {
 					Task d;
 					d.gene = engine.mutate(c.gene);
-					d.score = -1;
+					d.score = c.score;
 					d.parents.push_back(c.gene);
 					task_q->en(d);
 				}
@@ -132,7 +155,7 @@ namespace DGEBC {
 						e.gene = engine.combine(
 								survivor[k].gene,
 								c.gene);
-						e.score = -1;
+						e.score = (c.score + e.score)* .5;
 						e.parents.push_back(survivor[k].gene);
 						e.parents.push_back(c.gene);
 						task_q->en(e);
@@ -146,6 +169,9 @@ namespace DGEBC {
 					int k(rand() % survivor.size());
 					int sel_score(survivor[k].score * 10000 + 1);
 					int c_score(c.score * 10000 + 1);
+					if (survivor[k].score < c.score) {
+						sel_score = 0;
+					}
 					if (rand() % (sel_score + c_score) < c_score) {
 						survivor[k] = c;
 					}
@@ -153,8 +179,7 @@ namespace DGEBC {
 
 				if (c.score > current_max) {
 					current_max = c.score;
-					std::cerr << "new best\n";
-					std::cerr << "gene " << c.gene 
+					dgebc_log() << "Found new best" 
 						<< " score " << c.score << "\n";
 				}
 			}

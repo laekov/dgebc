@@ -13,6 +13,7 @@ namespace DGEBC {
 	template<class DataType>
 	class MsgQue {
 		private:
+			static const int max_size = 1000000;
 			std::priority_queue<DataType> q;
 			sem_t data_ready_sem;
 			pthread_mutex_t editing_mtx;
@@ -45,6 +46,9 @@ namespace DGEBC {
 				pthread_mutex_lock(&editing_mtx);
 				++ tot_cnt;
 				q.push(d);
+				if (q.size() > max_size) {
+					q.pop();
+				}
 				pthread_mutex_unlock(&editing_mtx);
 				sem_post(&data_ready_sem);
 			}

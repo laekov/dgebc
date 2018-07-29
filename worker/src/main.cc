@@ -66,11 +66,19 @@ int main(int argc, char* args[]) {
 	// Optional: execute another pthread to run scheduler
 	pthread_t proxy_handle;
 	pthread_create(&proxy_handle, 0, DGEBC::proxyMain,
-			static_cast<void*>(queues));
+			       static_cast<void*>(queues));
 
 	DGEBC::setServer(server_addr, server_port);
+	DGEBC::setWorkerPort(port);
+
+	pthread_t daemon_handle;
+	pthread_create(&daemon_handle, 0, DGEBC::daemonMain,
+			       static_cast<void*>(queues));
+
 	DGEBC::schedulerMain(static_cast<void*>(queues));
+
 	mg_stop(ctx);
+
 	return 0;
 }
 
