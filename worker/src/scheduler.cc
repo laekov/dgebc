@@ -1,3 +1,4 @@
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -12,10 +13,6 @@
 #include <../../engine/engine.h>
 
 namespace DGEBC {
-	inline bool operator <(const Task& a, const Task& b) {
-		return a.score > b.score;
-	}
-
 	char *server_addr, *server_port;
 
 	using std::pair;
@@ -56,20 +53,27 @@ namespace DGEBC {
 			fellows.push_back(pair<string, string>(addr, port));
 			std::cerr << addr << ":" << port << "\n";
 		}
+		fellows.push_back(pair<string, string>("localhost", "8080"));
+		fellows.push_back(pair<string, string>("localhost", "8081"));
 	}
 
 	void spreadGene(Task t) {
 		char buf[4096];
 		for (auto i: fellows) {
 			struct mg_connection *conn;
-			conn = mg_download(server_addr, atoi(server_port), 0, buf, 
-					sizeof(buf),
-					"GET /spread_gene?gene=%s&score=%.9f"
-				    " HTTP/1.0\r\nHost: %s\r\n\r\n", 
-					t.gene.c_str(), t.score, server_addr);
+			conn = mg_connect_client(i.first.c_str(), atoi(i.second.c_str()),
+					                 0, buf, sizeof(buf));
+			sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
+			mg_printf(conn, "POST /spread_gene HTTP/1.1\r\n"
+					"Host: %s\r\n"
+					"Content-Type: application/x-www-form-urlencoded\r\n"
+					"Content-Length: %d\r\n"
+					"\r\n"
+					"%s", i.first.c_str(), strlen(buf), buf);
 			mg_close_connection(conn);
 		}
 	}
+	double current_max(.1);
 
 	void* schedulerMain(void* args) {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
@@ -87,8 +91,8 @@ namespace DGEBC {
 		static const int mutate_const = 10;
 		static const int combine_const = 10;
 		static const int max_iter = 100;
+		static const double spread_ratio = 0.7;
 
-		double current_max(.1);
 		vector<Task> survivor;
 		registerWorker();
 		for (int cnt = 0; ; ++ cnt) {
@@ -96,7 +100,10 @@ namespace DGEBC {
 				updateClientList();
 			} else if (cnt % 97 == 0) {
 				for (auto it: survivor) {
-					spreadGene(it);
+					if (it.score > current_max * spread_ratio) {
+						std::cerr << "Spread score = " << it.score << "\n";
+						spreadGene(it);
+					}
 				}
 			} else {
 				Task c(res_q->de());

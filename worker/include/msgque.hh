@@ -13,7 +13,7 @@ namespace DGEBC {
 	template<class DataType>
 	class MsgQue {
 		private:
-			std::queue<DataType> q;
+			std::priority_queue<DataType> q;
 			sem_t data_ready_sem;
 			pthread_mutex_t editing_mtx;
 			int tot_cnt;
@@ -36,7 +36,7 @@ namespace DGEBC {
 				DataType result;
 				sem_wait(&data_ready_sem);
 				pthread_mutex_lock(&editing_mtx);
-				result = q.front();
+				result = q.top();
 				q.pop();
 				pthread_mutex_unlock(&editing_mtx);
 				return result;

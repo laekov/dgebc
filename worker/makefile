@@ -9,7 +9,7 @@ LIBS = lib/libcivetweb.a ../engine/libengine.so ../engine/lib/libBox2D.a
 default: bin/main
 
 run: bin/main
-	LD_LIBRARY_PATH=../engine bin/main -w 90 
+	bash run.sh
 
 bin/% : src/%.cc bin ${LIBS} ${OBJS} 
 	${CXX} -Iinclude -o $@ $< ${OBJS} ${LIBS} ${CFLAGS}

@@ -13,6 +13,7 @@ namespace DGEBC {
 	MsgQue<Task> *task_q;
 	MsgQue<Task> *res_q;
 	int proxyHandler(struct mg_connection* conn) {
+		extern double current_max;
 		const struct mg_request_info *ri = mg_get_request_info(conn);
 		char post_data[4096];
 		char buf[4096];
@@ -29,10 +30,14 @@ namespace DGEBC {
 		} else if (!strcmp(ri->uri, "/status")) {
 			sprintf(buf, "total tasks: %d\n"
 					"finished tasks: %d\n"
-					"pending tasks: %d\n",
+					"pending tasks: %d\n"
+					"current max: %.10lf\n",
 					task_q->tot(),
 					res_q->tot(),
-					task_q->sz());
+					task_q->sz(),
+					current_max);
+		} else {
+			std::cerr << "Unknown uri " << ri->uri << "\n";
 		}
 		mg_printf(conn,
 				"HTTP/1.1 200 OK\r\n"

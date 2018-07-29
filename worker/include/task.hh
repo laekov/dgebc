@@ -14,5 +14,10 @@ namespace DGEBC {
 			std::cout << "Task " << gene << " " << score << std::endl;
 		}
 	};
+
+	inline bool operator <(const Task& a, const Task& b) {
+		return a.score < b.score;
+	}
+
 };
 #endif
