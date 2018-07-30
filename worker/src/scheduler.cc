@@ -1,4 +1,5 @@
 #include <ctime>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -25,6 +26,11 @@ namespace DGEBC {
 	using std::stringstream;
 
 	vector<pair<string, string> > fellows;
+
+	inline double randf() {
+		static const int rng = 12345677;
+		return (rand() % rng) / (double)rng;
+	}
 
 	void setServer(char* addr, char* port) {
 		server_addr = addr;
@@ -77,6 +83,17 @@ namespace DGEBC {
 
 	MsgQue<Task> spread_que;
 
+	void dumpGene(Task t) {
+		struct mg_connection *conn;
+		char buf[4096];
+		conn = mg_connect_client(server_addr, atoi(server_port),
+				                 0, buf, sizeof(buf));
+		sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
+		mg_printf(conn, "POST /dump?%s HTTP/1.1\r\n"
+				"Host: %s\r\n", buf, server_addr);;
+		mg_close_connection(conn);
+	}
+
 	void spreadGene(Task t) {
 		static set<string> sent_gene;
 		if (sent_gene.find(t.gene) != sent_gene.end()) {
@@ -84,8 +101,8 @@ namespace DGEBC {
 		}
 		sent_gene.insert(t.gene);
 		char buf[4096];
+		struct mg_connection *conn;
 		for (auto i: fellows) {
-			struct mg_connection *conn;
 			conn = mg_connect_client(i.first.c_str(), atoi(i.second.c_str()),
 					                 0, buf, sizeof(buf));
 			sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
@@ -96,6 +113,9 @@ namespace DGEBC {
 					"\r\n"
 					"%s", i.first.c_str(), strlen(buf), buf);
 			mg_close_connection(conn);
+		}
+		if (rand() & 1) {
+			dumpGene(t);
 		}
 	}
 
@@ -149,7 +169,7 @@ namespace DGEBC {
 		task_q->en(init_t);
 
 		// TODO(laekov): make it variable under server's control
-		static const int group_size = 103;
+		static const int group_size = 1003;
 		static const int mutate_const = 10;
 		static const int combine_const = 10;
 		static const int max_iter = 100;
@@ -173,7 +193,7 @@ namespace DGEBC {
 				for (int j = 0; j < num_mutate; ++ j) {
 					Task d;
 					d.gene = engine.mutate(c.gene);
-					d.score = c.score;
+					d.score = c.score * randf() * 2;
 					d.parents.push_back(c.gene);
 					task_q->en(d);
 				}
@@ -190,7 +210,7 @@ namespace DGEBC {
 						e.gene = engine.combine(
 								survivor[k].gene,
 								c.gene);
-						e.score = (c.score + e.score)* .5;
+						e.score = (c.score + e.score)* randf();
 						e.parents.push_back(survivor[k].gene);
 						e.parents.push_back(c.gene);
 						task_q->en(e);
@@ -216,6 +236,7 @@ namespace DGEBC {
 					current_max = c.score;
 					dgebc_log() << "Found new best" 
 						<< " score " << c.score << "\n";
+					dumpGene(c);
 				}
 			}
 		}
