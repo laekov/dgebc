@@ -15,7 +15,7 @@ namespace DGEBC
 		typedef std::string input_t;
 		typedef double output_t;
 		
-		output_t score(const input_t &in);
+		output_t score(const input_t &in, int* = 0);
 		input_t combine(const input_t &in1, const input_t &in2);
 		input_t initial();
 		input_t mutate(const input_t &in);

@@ -14,8 +14,9 @@ namespace DGEBC {
 		DGEBC::Engine engine;
 		while (1) {
 			Task t(task_q->de());
-			t.score = engine.score(t.gene);
-			res_q->en(t);
+			int s(0);
+			t.score = engine.score(t.gene, &s);
+			res_q->en(t, s);
 		}
 	}
 };

@@ -16,12 +16,19 @@ namespace DGEBC
 	typedef Engine::chrome_arr_t chrome_arr_t;
 	static constexpr const int CHROME_LEN = Engine::CHROME_LEN;
 	using namespace std;
-	output_t Engine::score(const input_t &in)
+	output_t Engine::score(const input_t &in, int* cnt_ptr)
 	{
+		static int tmp;
+		if (!cnt_ptr) {
+			cnt_ptr = &tmp;
+		}
 		try
 		{
 			World world(false, in);
-			while(1) world.step();
+			while(1) { 
+				world.step(); 
+				++ *cnt_ptr; 
+			}
 		}
 		catch(float f)
 		{

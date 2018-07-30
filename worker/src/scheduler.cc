@@ -118,14 +118,14 @@ namespace DGEBC {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
 		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
 		int c_sz_report(0);
-		int last_sz(task_q->tot());
+		int last_sz(res_q->tot());
 		pthread_t update_handle;
 		pthread_create(&update_handle, 0, getListAndSpread, 0);
 		pthread_t register_handle;
 		pthread_create(&register_handle, 0, registerWorker, 0);
 		while (1) {
 			if (!c_sz_report) {
-				int new_sz(task_q->tot());
+				int new_sz(res_q->tot());
 				dgebc_log() << "queue size: " << task_q->sz()
 					<< "\ttotal tasks: " << task_q->tot() 
 					<< "\tTPS: " << new_sz - last_sz << "\n";
