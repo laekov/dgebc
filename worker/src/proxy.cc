@@ -25,7 +25,7 @@ namespace DGEBC {
 			t.gene = std::string(buf);
 			mg_get_var(post_data, post_data_len, "score", buf, sizeof(buf));
 			t.score = atof(buf);
-			res_q->en(t);
+			res_q->en(t, 0);
 			sprintf(buf, "Done\n");
 		} else if (!strcmp(ri->uri, "/status")) {
 			sprintf(buf, "total tasks: %d\n"

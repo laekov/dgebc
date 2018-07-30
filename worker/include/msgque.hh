@@ -37,14 +37,16 @@ namespace DGEBC {
 				DataType result;
 				sem_wait(&data_ready_sem);
 				pthread_mutex_lock(&editing_mtx);
-				result = q.top();
-				q.pop();
+				if (!q.empty()) {
+					result = q.top();
+					q.pop();
+				}
 				pthread_mutex_unlock(&editing_mtx);
 				return result;
 			}
-			inline void en(const DataType& d) {
+			inline void en(const DataType& d, int add_cnt = 1) {
 				pthread_mutex_lock(&editing_mtx);
-				++ tot_cnt;
+				tot_cnt += add_cnt;
 				q.push(d);
 				if (q.size() > max_size) {
 					q.pop();

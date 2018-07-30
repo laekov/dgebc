@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <unistd.h>
 
 #include <civetweb.h>
@@ -19,6 +20,7 @@ namespace DGEBC {
 
 	using std::pair;
 	using std::vector;
+	using std::set;
 	using std::string;
 	using std::stringstream;
 
@@ -33,13 +35,18 @@ namespace DGEBC {
 		worker_port = port;
 	}
 
-	void registerWorker() {
+	void* registerWorker(void*) {
 		struct mg_connection *conn;
 		char buf[4096];
-		conn = mg_download(server_addr, atoi(server_port), 0, buf, sizeof(buf),
-				"GET /register_worker?port=%s HTTP/1.0\r\nHost: %s\r\n\r\n",
-				worker_port, server_addr);
-		mg_close_connection(conn);
+		while (1) {
+			conn = mg_download(server_addr, atoi(server_port), 0, buf, 
+					sizeof(buf),
+					"GET /register_worker?port=%s HTTP/1.0\r\n"
+					"Host: %s\r\n\r\n",
+					worker_port, server_addr);
+			mg_close_connection(conn);
+			sleep(1);
+		}
 	}
 
 	inline std::ostream& dgebc_log() {
@@ -65,26 +72,17 @@ namespace DGEBC {
 		while (response >> addr >> port) {
 			fellows.push_back(pair<string, string>(addr, port));
 		}
-		dgebc_log() << "Working with " << fellows.size() 
-			<< " fellows\n";
+		dgebc_log() << "Working with " << fellows.size() << " fellows\n";
 	}
 
-	void* daemonMain(void* args) {
-		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
-		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
-		int c_sz_report(0);
-		while (1) {
-			registerWorker();
-			updateClientList();
-			sleep(1);
-			if (!c_sz_report) {
-				dgebc_log() << "queue size: " << task_q->sz() + res_q->sz()
-					<< "\ttotal tasks: " << task_q->tot() << "\n";
-			}
-		}
-	}
+	MsgQue<Task> spread_que;
 
 	void spreadGene(Task t) {
+		static set<string> sent_gene;
+		if (sent_gene.find(t.gene) != sent_gene.end()) {
+			return;
+		}
+		sent_gene.insert(t.gene);
 		char buf[4096];
 		for (auto i: fellows) {
 			struct mg_connection *conn;
@@ -100,6 +98,43 @@ namespace DGEBC {
 			mg_close_connection(conn);
 		}
 	}
+
+	void* getListAndSpread(void*) {
+		while (1) {
+			updateClientList();
+			for (int i = 0; i < 10; ++ i) {
+				Task t;
+				if ((t = spread_que.de()).score > -1) {
+					spreadGene(t);
+				} else {
+					break;
+				}
+			}
+			sleep(1);
+		}
+	}
+
+	void* daemonMain(void* args) {
+		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
+		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
+		int c_sz_report(0);
+		int last_sz(task_q->tot());
+		pthread_t update_handle;
+		pthread_create(&update_handle, 0, getListAndSpread, 0);
+		pthread_t register_handle;
+		pthread_create(&register_handle, 0, registerWorker, 0);
+		while (1) {
+			if (!c_sz_report) {
+				int new_sz(task_q->tot());
+				dgebc_log() << "queue size: " << task_q->sz()
+					<< "\ttotal tasks: " << task_q->tot() 
+					<< "\tTPS: " << new_sz - last_sz << "\n";
+				last_sz = new_sz;
+			}
+			sleep(1);
+		}
+	}
+
 	double current_max(.1);
 
 	void* schedulerMain(void* args) {
@@ -125,7 +160,7 @@ namespace DGEBC {
 			if (cnt % 97 == 96) {
 				for (auto it: survivor) {
 					if (it.score > current_max * spread_ratio) {
-						spreadGene(it);
+						spread_que.en(it);
 					}
 				}
 			} else {
