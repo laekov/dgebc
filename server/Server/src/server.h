@@ -36,8 +36,6 @@ private:
 
 private slots:
     void heartBeat();
-//    void killDeadWorker(QUrl url);
-//    void keepActiveWorker(QUrl url);
 };
 
 #endif // SERVER_H

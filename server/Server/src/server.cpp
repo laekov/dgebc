@@ -13,7 +13,6 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
     timer->start(ONE_MINUTE);
-    //timer->start(ONE_SECOND * 10);
 
     mutex.unlock();
 }
@@ -35,8 +34,8 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 		QString addr = sourceAddress.split(":").takeLast();
         QString port = QString(request.getParameter(QString("port").toLatin1()));
         QUrl url = QUrl();
-		url.setHost(addr);
-		url.setPort(port.toInt());
+        url.setHost(addr);
+        url.setPort(port.toInt());
         qDebug() << "Server: /register_worker" << url;
         Worker w = Worker(url);
         mutex.lock();
@@ -50,8 +49,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
 			QUrl url = it.value().url;
-			QString content = QString("%1 %2\n").arg(url.host())
-				.arg(url.port());
+			QString content = QString("%1 %2\n").arg(url.host()).arg(url.port());
             response.write(content.toLatin1(), false);
         }
 
@@ -76,8 +74,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
             // update an old worker
             qDebug() << "Server: /dump (update active worker)" << url << gene << score;
             Worker &w = allActiveWorkers[url];
-            w.gene = gene;
-            w.score = score;
+            w.appendCar(gene, score);
         }
         else
         {
@@ -95,11 +92,18 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("%1,%2,%3;")
+            response.write(QString("%1:%2,")
                            .arg(QString(it.value().url.toString()))
-                           .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score))
                            .arg(QString(it.value().speed)).toLatin1(), false);
+
+            foreach (Car c, it.value().cars)
+            {
+                response.write(QString("%1,%2,")
+                               .arg(QString(c.gene))
+                               .arg(QString(c.score)).toLatin1(), false);
+            }
+
+            response.write(";", false);
         }
 
         mutex.unlock();
@@ -111,11 +115,16 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("ip = %1,    gene = %2,    score = %3,    speed = %4\n")
+            response.write(QString("[ip = %1,    speed = %2]\n")
                            .arg(QString(it.value().url.toString()))
-                           .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score))
                            .arg(QString(it.value().speed)).toLatin1(), false);
+
+            foreach (Car c, it.value().cars)
+            {
+                response.write(QString("    gene = %1,    score = %2\n")
+                               .arg(QString(c.gene))
+                               .arg(QString(c.score)).toLatin1(), false);
+            }
         }
 
         mutex.unlock();
