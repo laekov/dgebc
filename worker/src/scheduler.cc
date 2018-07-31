@@ -52,6 +52,7 @@ namespace DGEBC {
 					worker_port, server_addr);
 			mg_close_connection(conn);
 			sleep(1);
+			break;
 		}
 	}
 
@@ -86,11 +87,10 @@ namespace DGEBC {
 	void dumpGene(Task t) {
 		struct mg_connection *conn;
 		char buf[4096];
-		conn = mg_connect_client(server_addr, atoi(server_port),
-				                 0, buf, sizeof(buf));
-		sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
-		mg_printf(conn, "POST /dump?%s HTTP/1.1\r\n"
-				"Host: %s\r\n", buf, server_addr);;
+		conn = mg_download(server_addr, atoi(server_port), 0, buf, sizeof(buf),
+			"GET /dump?gene=%s&score=%.9lf&port=%s HTTP/1.0\r\n"
+			"Host: %s\r\n\r\n", 
+			t.gene.c_str(), t.score, worker_port, server_addr);
 		mg_close_connection(conn);
 	}
 
