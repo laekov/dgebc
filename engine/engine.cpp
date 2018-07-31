@@ -66,7 +66,7 @@ namespace DGEBC
 	QLayout *Engine::visualize(const input_t &in)
 	{
 		QVBoxLayout *lo = new QVBoxLayout();
-		lo->addWidget(new MainWindow(in, NULL));
+		lo->addWidget(new MainWindow(in, lo, NULL));
 		return lo;
 	}
 #endif // !DGEBC_ENGINE_NO_VISUALIZE

@@ -14,6 +14,7 @@ class World: public QObject {
     Q_OBJECT
 public:
     World(bool isRender, std::string gene);
+	void setGene(std::string gene);
     ~World();
 
     void addSparksList(const int impulses, const b2Vec2 pos,

@@ -14,6 +14,7 @@ public:
 	Dialog(QWidget *parent = 0);
 	~Dialog();
 private:
+	int n, m;
 	QList<QLayout *> sons;
 	QGridLayout *gl;
 	DGEBC::Engine engine;

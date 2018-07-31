@@ -1,4 +1,4 @@
-QT     += core gui
+QT     += core gui opengl
 CONFIG += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -23,3 +23,6 @@ SOURCES += main.cpp dialog.cpp
 HEADERS += dialog.h ../engine/engine.h
 
 LIBS += ../engine/libengine.so
+
+INCLUDEPATH += ../engine/Box2D
+INCLUDEPATH += ../engine/Box2D/Box2D

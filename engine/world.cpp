@@ -18,6 +18,16 @@ World::World(bool isRender, std::string gene) {
     init();
 }
 
+void World::setGene(std::string gene)
+{
+	this->gene = gene;
+	algorithm->setGene(gene);
+    destroy();
+    algorithm->init();
+    algorithm->nextCar();
+    init();
+}
+
 World::~World() {
     algorithm->deleteLater();
     destroy();
@@ -65,7 +75,7 @@ float World::getUptime() {
 }
 
 void World::step() {
-	if(isDied) return;
+	// if(isDied) return;
     car->update();
     updateSparks();
     b2world->Step(TIME_STEP, ITERATIONS, ITERATIONS);
@@ -111,14 +121,8 @@ void World::init() {
 //slots
 
 void World::carStoped() {
-	if(isRender)
-	{
-		isDied = true;
-	}
-	else
-	{
-		throw car->getMaxPossition();
-	}
+	// isDied = true;
+	throw car->getMaxPossition();
     // algorithm->setScoreAndTime(car->getMaxPossition(), car->getTime());
     // algorithm->nextCar();
     // destroy();
@@ -128,6 +132,7 @@ void World::carStoped() {
 //private
 
 void World::updateSparks() {
+	return;
     while (sparkList.size()) {
         sparkStuct sparkEntry = sparkList.at(0);
         sparkList.remove(0);

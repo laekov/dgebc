@@ -14,6 +14,11 @@ GeneticAlgorithm::GeneticAlgorithm(std::string gene) {
 	avgScore.push_back(0);
 }
 
+void GeneticAlgorithm::setGene(std::string gene)
+{
+	this->gene = gene;
+}
+
 //public
 
 float GeneticAlgorithm::getAvgScore(const int index) {

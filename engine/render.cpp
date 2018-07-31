@@ -11,9 +11,9 @@ Render::Render(World *pWorld, QWidget *parent) :
     avgScore = NULL;
     maxScore = NULL;
     genrationNum = 0;
-    setMinimumSize(320, 240);
+    setMinimumSize(160, 120);
     prepareTableBoard();
-    setSpeed(2);
+    setSpeed(4);
 }
 
 Render::~Render() {
@@ -43,9 +43,12 @@ void Render::deleteCallList(const unsigned int index) {
 
 //private
 
-void Render::drawBody(b2Body *body) {
+void Render::drawBody(b2Body *body, int mn, int mx) {
     QColor *color;
-    for (b2Fixture *f = body->GetFixtureList(); f; f = f->GetNext()) {
+	int I = 0;
+    for (b2Fixture *f = body->GetFixtureList(); f; ++I, f = f->GetNext()) {
+		if(I < mn) continue;
+		if(I > mx) break;
         color = (QColor *)f->GetUserData();
         const b2Transform& xf = f->GetBody()->GetTransform();
         switch (f->GetType()) {
@@ -300,26 +303,26 @@ void Render::drawText() {
     Car *car = world->getCar();
     QString str;
     qglColor(Qt::red);
-    str = tr("Score: %1").arg(QString::number(car->getMaxPossition(), '0', 1));
+    str = tr("%1").arg(QString::number(car->getMaxPossition(), '0', 1));
     renderText(this->width()/2 - fmScore.width(str)/2, height()/6*5, str,
                font);
     font.setPixelSize(14);
     QFontMetrics fm(font);
     int ss = 5*60 - car->getTime();
     QTime time(0, ss/60, ss%60);
-    str = tr("Time: %1").arg(time.toString("m:ss"));
-    renderText(width() - fm.width(str) - 5, 20, str, font);
-    str = tr("Torque: %1").arg(QString::number(car->getTorque(), '0', 1));
-    renderText(width() - fm.width(str) - 5, 34, str, font);
-    str = tr("Speed: %1").arg(QString::number(car->getSpeed(), '0', 1));
-    renderText(width() - fm.width(str) - 5, 48, str, font);
+    // str = tr("Time: %1").arg(time.toString("m:ss"));
+    // renderText(width() - fm.width(str) - 5, 20, str, font);
+    // str = tr("Torque: %1").arg(QString::number(car->getTorque(), '0', 1));
+    // renderText(width() - fm.width(str) - 5, 34, str, font);
+    // str = tr("Speed: %1").arg(QString::number(car->getSpeed(), '0', 1));
+    // renderText(width() - fm.width(str) - 5, 48, str, font);
     font.setPixelSize(16);
     QFontMetrics fmGeneration(font);
     int generationNumber = world->getAlgorithm()->getGenerationNum();
     // str = tr("Generation: %1").arg(QString::number(generationNumber));
     // renderText(width()/2 - fmGeneration.width(str)/2, 20, str, font);
     qglColor(Qt::blue);
-    if (speed == 0) {
+    /*if (speed == 0) {
         str = tr("[PAUSE]");
         font.setPixelSize(32);
         QFontMetrics fmPause(font);
@@ -328,7 +331,7 @@ void Render::drawText() {
         str = tr("Playback speed: %1x").arg(QString::number(speed/2.0, '0', 1));
         font.setPixelSize(14);
         renderText(width() - fm.width(str) - 5, 62, str, font);
-    }
+    }*/
 }
 
 float Render::getLeftBound() {
@@ -371,7 +374,9 @@ void Render::paintGL() {
     drawGrid();
     drawCar();
     drawSparks();
-    drawBody(world->getTrack()->getBody());
+    drawBody(world->getTrack()->getBody(),
+		world->getCar()->getMaxPossition() / 3.75 - 5,
+		world->getCar()->getMaxPossition() / 3.5 + 5);
     drawText();
     drawParents();
     glMatrixMode(GL_PROJECTION);

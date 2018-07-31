@@ -14,8 +14,10 @@
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
-    MainWindow(std::string gene, QWidget *parent = 0);
+    MainWindow(std::string gene, QLayout *pLayout, QWidget *parent = 0);
+	void setGene(std::string gene);
     ~MainWindow();
+	bool finished;
 
 signals:
     
@@ -33,6 +35,7 @@ private:
     Render *render;
     int speed;
     World *world;
+	QLayout *pLayout;
 
     void createMenu();
     void keyPressEvent(QKeyEvent *event);

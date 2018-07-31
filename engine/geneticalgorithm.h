@@ -10,6 +10,7 @@ class GeneticAlgorithm: public QObject {
     Q_OBJECT
 public:
     GeneticAlgorithm(std::string gene);
+	void setGene(std::string gene);
 
     float getAvgScore(const int index);
     float getAxleAngle(const int index);
@@ -43,7 +44,7 @@ private:
     static constexpr const float MIN_WHEEL = 0.1;
     static constexpr const float MAX_WHEEL = 1.5;
     static constexpr const float MIN_ANGLE = 0.08;
-    static constexpr const int POP_SIZE = 32;
+    static constexpr const int POP_SIZE = 2;
     static constexpr const float WHEEL_PROB0 = 0.5; //(0:1]
     static constexpr const int START_WHEELS_GEN = 16;
     static constexpr const int MAX_MUTATION_RATE = 5.0;

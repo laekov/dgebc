@@ -2,8 +2,9 @@
 
 #include "render.h"
 
-MainWindow::MainWindow(std::string gene, QWidget *parent) :
+MainWindow::MainWindow(std::string gene, QLayout *layout, QWidget *parent) :
     QMainWindow(parent) {
+	pLayout = layout;
     world = new World(true, gene);
     render = new Render(world, this);
     connect(world, SIGNAL(creteNewCar()), render, SLOT(createCarCallList()));
@@ -12,11 +13,17 @@ MainWindow::MainWindow(std::string gene, QWidget *parent) :
     setCentralWidget(render);
     resize(800, 600);
     setWindowTitle(tr("Carbox2d"));
-    createMenu();
-    speed = SPEED_FAST;
-    startTimer(1000/30);
+    // createMenu();
+    speed = 10;
+    startTimer(1000/10);
     render->updateGL();
     render->createCarCallList();
+	finished = 0;
+}
+
+void MainWindow::setGene(std::string gene)
+{
+	world->setGene(gene);
 }
 
 MainWindow::~MainWindow() {
@@ -82,8 +89,17 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 }
 
 void MainWindow::timerEvent(QTimerEvent *e __attribute__ ((unused))) {
-    for (int i = 0; i < speed; i++)
-        world->step();
+	try
+	{
+		for (int i = 0; i < speed; i++)
+			world->step();
+	}
+	catch(float f)
+	{
+		finished = 1;
+		// pLayout->removeWidget(this);
+		// deleteLater();
+	}
     render->updateGL();
 }
 

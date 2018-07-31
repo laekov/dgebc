@@ -31,7 +31,7 @@ private:
     float viewRadius;
     World *world;
 
-    void drawBody(b2Body *body);
+    void drawBody(b2Body *body, int mn = 0, int mx = 10086);
     void drawCar();
     void drawCircle(const b2Vec2& center, float32 radius, const float32 angle,
                     const QColor &color);
