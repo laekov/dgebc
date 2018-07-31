@@ -50,14 +50,14 @@ var config = {
 				display: true,
 				scaleLabel: {
 					display: true,
-					labelString: 'Month'
+					labelString: 'Time'
 				}
 			}],
 			yAxes: [{
 				display: true,
 				scaleLabel: {
 					display: true,
-					labelString: 'Value'
+					labelString: 'Steps per second'
 				}
 			}]
 		}
@@ -103,11 +103,7 @@ var updateDiagram = function() {
 	var labels = [];
 	for (var j = 99; j >= 0; -- j) {
 		var d = new Date((tend - j)* 1000);
-		if (j % 20 == 0) {
 			labels.push(d.toTimeString());
-		} else {
-			labels.push('');
-		}
 	}
 	config.data.datasets = dataset;
 	config.data.labels = labels;
