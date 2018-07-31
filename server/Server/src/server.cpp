@@ -12,7 +12,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
-    timer->start(ONE_MINUTE);
+    //timer->start(ONE_MINUTE);
 
     mutex.unlock();
 }
@@ -36,6 +36,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         QUrl url = QUrl();
 		url.setHost(addr);
 		url.setPort(port.toInt());
+        qDebug() << "Server: /register_worker" << url;
         Worker w = Worker(url);
         mutex.lock();
         allActiveWorkers.insert(url, w);
@@ -72,6 +73,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         if (allActiveWorkers.contains(url))
         {
             // update an old worker
+            qDebug() << "Server: /dump (update active worker)" << url << gene << score;
             Worker &w = allActiveWorkers[url];
             w.gene = gene;
             w.score = score;
@@ -79,6 +81,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         else
         {
             // a new worker emerges
+            qDebug() << "Server: /dump (register new worker)" << url << gene << score;
             Worker w = Worker(url, gene, score);
             allActiveWorkers.insert(url, w);
         }
