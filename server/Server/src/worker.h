@@ -12,6 +12,7 @@ struct Worker
     QUrl url;
     QByteArray gene;
     QByteArray score;
+    QByteArray speed;
 };
 
 #endif // WORKER_H

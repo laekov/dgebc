@@ -13,6 +13,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
     timer->start(ONE_MINUTE);
+    //timer->start(ONE_SECOND * 10);
 
     mutex.unlock();
 }
@@ -36,6 +37,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         QUrl url = QUrl();
 		url.setHost(addr);
 		url.setPort(port.toInt());
+        qDebug() << "Server: /register_worker" << url;
         Worker w = Worker(url);
         mutex.lock();
         allActiveWorkers.insert(url, w);
@@ -72,6 +74,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         if (allActiveWorkers.contains(url))
         {
             // update an old worker
+            qDebug() << "Server: /dump (update active worker)" << url << gene << score;
             Worker &w = allActiveWorkers[url];
             w.gene = gene;
             w.score = score;
@@ -79,6 +82,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         else
         {
             // a new worker emerges
+            qDebug() << "Server: /dump (register new worker)" << url << gene << score;
             Worker w = Worker(url, gene, score);
             allActiveWorkers.insert(url, w);
         }
@@ -94,7 +98,8 @@ void Server::service(HttpRequest &request, HttpResponse &response)
             response.write(QString("%1,%2,%3;")
                            .arg(QString(it.value().url.toString()))
                            .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score)).toLatin1(), false);
+                           .arg(QString(it.value().score))
+                           .arg(QString(it.value().speed)).toLatin1(), false);
         }
 
         mutex.unlock();
@@ -106,10 +111,11 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("ip = %1,    gene = %2,    score = %3\n")
+            response.write(QString("ip = %1,    gene = %2,    score = %3,    speed = %4\n")
                            .arg(QString(it.value().url.toString()))
                            .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score)).toLatin1(), false);
+                           .arg(QString(it.value().score))
+                           .arg(QString(it.value().speed)).toLatin1(), false);
         }
 
         mutex.unlock();
@@ -129,36 +135,43 @@ void Server::heartBeat()
 
     for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
     {
-        qDebug() << "Server: heart beat @" << it.key().toString();
+        QUrl url = QUrl("http:" + it.key().toString() + "/status");
+        qDebug() << "Server: heart beat @" << url;
 
-        QUrl url = QUrl(it.key().toString() + "/status");
         QNetworkRequest request;
         request.setUrl(QUrl(url));
 
         QNetworkReply *pReply = manager->get(request);
+
         QTimer stimer;
         stimer.setSingleShot(true);
-        QEventLoop loop;
-        connect(&stimer, &QTimer::timeout, &loop, &QEventLoop::quit);
-        connect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        QEventLoop eventLoop;
+        connect(&stimer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
+        connect(manager, &QNetworkAccessManager::finished, &eventLoop, &QEventLoop::quit);
         stimer.start(ONE_SECOND);
-        loop.exec();
+        eventLoop.exec();
 
         if (stimer.isActive())
         {
             stimer.stop();
+            QString replyMessage = pReply->readAll();
+            qDebug() << "Server: receive response message [" << replyMessage << "]";
+            QList<QString> split = replyMessage.split(",");
 
-            if (pReply->readAll() != "233")
+            if (split[0] != "g")
             {
                 // error == dead
                 qDebug() << "Server: kill worker (error)" << it.key().toString();
                 toDelete.append(it.key());
-                disconnect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                disconnect(pReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
                 pReply->abort();
             }
             else
             {
-                qDebug() << "Server: worker" << it.key().toString() << "is active";
+                qDebug() << "Server: worker" << it.key().toString() << "is active, calcaluting" << split[1] << "steps/sec";
+                mutex.lock();
+                allActiveWorkers[url].speed = split[1].toLatin1();
+                mutex.unlock();
             }
         }
         else
@@ -166,7 +179,7 @@ void Server::heartBeat()
             // timeout == dead
             qDebug() << "Server: kill worker (timeout)" << it.key().toString();
             toDelete.append(it.key());
-            disconnect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            disconnect(pReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
             pReply->abort();
         }
 

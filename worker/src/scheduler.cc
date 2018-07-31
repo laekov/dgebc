@@ -134,6 +134,8 @@ namespace DGEBC {
 		}
 	}
 
+	int throughput;
+
 	void* daemonMain(void* args) {
 		MsgQue<Task> *task_q = static_cast<MsgQue<Task>*>(args);
 		MsgQue<Task> *res_q = static_cast<MsgQue<Task>*>(args) + 1;
@@ -148,7 +150,7 @@ namespace DGEBC {
 				int new_sz(res_q->tot());
 				dgebc_log() << "queue size: " << task_q->sz()
 					<< "\ttotal tasks: " << task_q->tot() 
-					<< "\tTPS: " << new_sz - last_sz << "\n";
+					<< "\tTPS: " << (throughput = new_sz - last_sz) << "\n";
 				last_sz = new_sz;
 			}
 			sleep(1);
