@@ -13,6 +13,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
     //timer->start(ONE_MINUTE);
+    timer->start(ONE_SECOND);  // 10s
 
     mutex.unlock();
 }
@@ -132,31 +133,34 @@ void Server::heartBeat()
 
     for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
     {
-        qDebug() << "Server: heart beat @" << it.key().toString();
+        QUrl url = QUrl("http:" + it.key().toString() + "/status");
+        qDebug() << "Server: heart beat @" << url;
 
-        QUrl url = QUrl(it.key().toString() + "/status");
         QNetworkRequest request;
         request.setUrl(QUrl(url));
 
         QNetworkReply *pReply = manager->get(request);
+
         QTimer stimer;
         stimer.setSingleShot(true);
-        QEventLoop loop;
-        connect(&stimer, &QTimer::timeout, &loop, &QEventLoop::quit);
-        connect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        QEventLoop eventLoop;
+        connect(&stimer, &QTimer::timeout, &eventLoop, &QEventLoop::quit);
+        connect(manager, &QNetworkAccessManager::finished, &eventLoop, &QEventLoop::quit);
         stimer.start(ONE_SECOND);
-        loop.exec();
+        eventLoop.exec();
 
         if (stimer.isActive())
         {
             stimer.stop();
+            QString replyMessage = pReply->readAll();
+            qDebug() << "Server: receive response message [" << replyMessage << "]";
 
-            if (pReply->readAll() != "233")
+            if (replyMessage != "233")
             {
                 // error == dead
                 qDebug() << "Server: kill worker (error)" << it.key().toString();
                 toDelete.append(it.key());
-                disconnect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                disconnect(pReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
                 pReply->abort();
             }
             else
@@ -169,7 +173,7 @@ void Server::heartBeat()
             // timeout == dead
             qDebug() << "Server: kill worker (timeout)" << it.key().toString();
             toDelete.append(it.key());
-            disconnect(pReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            disconnect(pReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
             pReply->abort();
         }
 
