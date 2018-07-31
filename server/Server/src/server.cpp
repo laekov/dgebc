@@ -12,7 +12,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
-    timer->start(ONE_MINUTE);
+    timer->start(ONE_SECOND);
 
     mutex.unlock();
 }
@@ -179,7 +179,7 @@ void Server::heartBeat()
             {
                 qDebug() << "Server: worker" << it.key().toString() << "is active, calcaluting" << split[1] << "steps/sec";
                 mutex.lock();
-                allActiveWorkers[url].speed = split[1].toLatin1();
+                allActiveWorkers[it.key()].speed = split[1].toLatin1();
                 mutex.unlock();
             }
         }
