@@ -29,6 +29,8 @@ namespace DGEBC {
 			res_q->en(t, 0);
 			sprintf(buf, "Done\n");
 		} else if (!strcmp(ri->uri, "/status")) {
+			sprintf(buf, "g,%d", throughput);
+		} else if (!strcmp(ri->uri, "/get_status")) {
 			sprintf(buf, "total tasks:\t%d\n"
 					"finished tasks:\t%d\n"
 					"pending tasks:\t%d\n"

@@ -14,5 +14,5 @@ done
 
 while true
 do
-	false
+	sleep 1000
 done
