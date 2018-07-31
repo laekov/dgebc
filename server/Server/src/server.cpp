@@ -12,8 +12,8 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
-    //timer->start(ONE_MINUTE);
-    timer->start(ONE_SECOND);  // 10s
+    timer->start(ONE_MINUTE);
+    //timer->start(ONE_SECOND * 10);
 
     mutex.unlock();
 }
@@ -98,7 +98,8 @@ void Server::service(HttpRequest &request, HttpResponse &response)
             response.write(QString("%1,%2,%3;")
                            .arg(QString(it.value().url.toString()))
                            .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score)).toLatin1(), false);
+                           .arg(QString(it.value().score))
+                           .arg(QString(it.value().speed)).toLatin1(), false);
         }
 
         mutex.unlock();
@@ -110,10 +111,11 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("ip = %1,    gene = %2,    score = %3\n")
+            response.write(QString("ip = %1,    gene = %2,    score = %3,    speed = %4\n")
                            .arg(QString(it.value().url.toString()))
                            .arg(QString(it.value().gene))
-                           .arg(QString(it.value().score)).toLatin1(), false);
+                           .arg(QString(it.value().score))
+                           .arg(QString(it.value().speed)).toLatin1(), false);
         }
 
         mutex.unlock();
@@ -154,8 +156,9 @@ void Server::heartBeat()
             stimer.stop();
             QString replyMessage = pReply->readAll();
             qDebug() << "Server: receive response message [" << replyMessage << "]";
+            QList<QString> split = replyMessage.split(",");
 
-            if (replyMessage != "233")
+            if (split[0] != "g")
             {
                 // error == dead
                 qDebug() << "Server: kill worker (error)" << it.key().toString();
@@ -165,7 +168,10 @@ void Server::heartBeat()
             }
             else
             {
-                qDebug() << "Server: worker" << it.key().toString() << "is active";
+                qDebug() << "Server: worker" << it.key().toString() << "is active, calcaluting" << split[1] << "steps/sec";
+                mutex.lock();
+                allActiveWorkers[url].speed = split[1].toLatin1();
+                mutex.unlock();
             }
         }
         else
