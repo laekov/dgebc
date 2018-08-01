@@ -79,6 +79,7 @@ namespace DGEBC {
 		while (response >> addr >> port) {
 			fellows.push_back(pair<string, string>(addr, port));
 		}
+		mg_close_connection(conn);
 		dgebc_log() << "Working with " << fellows.size() << " fellows\n";
 	}
 
@@ -95,11 +96,6 @@ namespace DGEBC {
 	}
 
 	void spreadGene(Task t) {
-		static set<string> sent_gene;
-		if (sent_gene.find(t.gene) != sent_gene.end()) {
-			return;
-		}
-		sent_gene.insert(t.gene);
 		char buf[4096];
 		struct mg_connection *conn;
 		for (auto i: fellows) {
