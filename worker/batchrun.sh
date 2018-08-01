@@ -7,9 +7,9 @@ function ctrl_c() {
 	exit
 }
 
-for ((i=0;i<$1;++i)) 
+for ((i=1;i<$1;++i)) 
 do
-	bin/main -w 4 -p 90$(printf "%02d" $i) -h e1.sc.team -q 2303 2>&1 | tee $i.log &
+	bin/main -w $i -p 90$(printf "%02d" $i) -h e1.sc.team -q 2303 2>&1 | tee $i.log &
 done
 
 while true
