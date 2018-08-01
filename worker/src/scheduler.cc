@@ -102,12 +102,9 @@ namespace DGEBC {
 			sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
 			conn = mg_download(
 				i.first.c_str(), atoi(i.second.c_str()), 0, buf, sizeof(buf),
-				"POST /spread_gene HTTP/1.1\r\n"
+				"GET /spread_gene?gene=%s&score=%.9f HTTP/1.0\r\n"
 				"Host: %s\r\n"
-				"Content-Type: application/x-www-form-urlencoded\r\n"
-				"Content-Length: %d\r\n"
-				"\r\n"
-				"%s", i.first.c_str(), strlen(buf), buf);
+				"\r\n", t.gene.c_str(), t.score, i.first.c_str());
 			mg_close_connection(conn);
 		}
 		if (rand() & 1) {
@@ -190,7 +187,10 @@ namespace DGEBC {
 				}
 				for (int j = 0; j < num_mutate; ++ j) {
 					Task d;
-					d.gene = engine.mutate(c.gene);
+					d.gene = c.gene;
+					for (int k = rand() % 10 + 1; k; -- k) {
+						d.gene = engine.mutate(d.gene);
+					}
 					d.score = c.score * randf() * 2;
 					d.parents.push_back(c.gene);
 					task_q->en(d);
@@ -219,14 +219,23 @@ namespace DGEBC {
 				if (survivor.size() < group_size) {
 					survivor.push_back(c);
 				} else {
-					int k(rand() % survivor.size());
-					int sel_score(survivor[k].score * 10000 + 1);
-					int c_score(c.score * 10000 + 1);
-					if (survivor[k].score < c.score) {
-						sel_score = 0;
+					bool fnd(0);
+					for (auto i : survivor) {
+						if (i.gene == c.gene) {
+							fnd = 1;
+							break;
+						}
 					}
-					if (rand() % (sel_score + c_score) < c_score) {
-						survivor[k] = c;
+					if (!fnd) {
+						int k(rand() % survivor.size());
+						int sel_score(survivor[k].score * 10000 + 1);
+						int c_score(c.score * 10000 + 1);
+						if (survivor[k].score < c.score) {
+							sel_score = 0;
+						}
+						if (rand() % (sel_score + c_score) < c_score) {
+							survivor[k] = c;
+						}
 					}
 				}
 
