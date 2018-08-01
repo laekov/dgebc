@@ -99,15 +99,15 @@ namespace DGEBC {
 		char buf[4096];
 		struct mg_connection *conn;
 		for (auto i: fellows) {
-			conn = mg_connect_client(i.first.c_str(), atoi(i.second.c_str()),
-					                 0, buf, sizeof(buf));
 			sprintf(buf, "gene=%s&score=%.9lf", t.gene.c_str(), t.score);
-			mg_printf(conn, "POST /spread_gene HTTP/1.1\r\n"
-					"Host: %s\r\n"
-					"Content-Type: application/x-www-form-urlencoded\r\n"
-					"Content-Length: %d\r\n"
-					"\r\n"
-					"%s", i.first.c_str(), strlen(buf), buf);
+			conn = mg_download(
+				i.first.c_str(), atoi(i.second.c_str()), 0, buf, sizeof(buf),
+				"POST /spread_gene HTTP/1.1\r\n"
+				"Host: %s\r\n"
+				"Content-Type: application/x-www-form-urlencoded\r\n"
+				"Content-Length: %d\r\n"
+				"\r\n"
+				"%s", i.first.c_str(), strlen(buf), buf);
 			mg_close_connection(conn);
 		}
 		if (rand() & 1) {
