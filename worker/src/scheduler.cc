@@ -79,6 +79,7 @@ namespace DGEBC {
 		while (response >> addr >> port) {
 			fellows.push_back(pair<string, string>(addr, port));
 		}
+		mg_close_connection(conn);
 		dgebc_log() << "Working with " << fellows.size() << " fellows\n";
 	}
 
