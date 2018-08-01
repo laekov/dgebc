@@ -376,7 +376,7 @@ void Render::paintGL() {
     drawSparks();
     drawBody(world->getTrack()->getBody(),
 		world->getCar()->getMaxPossition() / 3.75 - 5,
-		world->getCar()->getMaxPossition() / 3.5 + 5);
+		world->getCar()->getMaxPossition() / 3 + 5);
     drawText();
     drawParents();
     glMatrixMode(GL_PROJECTION);
