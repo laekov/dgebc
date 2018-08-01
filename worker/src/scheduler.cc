@@ -107,7 +107,7 @@ namespace DGEBC {
 				"\r\n", t.gene.c_str(), t.score, i.first.c_str());
 			mg_close_connection(conn);
 		}
-		if (rand() & 1) {
+		if ((rand() & 127) == 0) {
 			dumpGene(t);
 		}
 	}
@@ -160,19 +160,24 @@ namespace DGEBC {
 
 		Task init_t;
 		init_t.gene = engine.initial();
-		init_t.score = -1;
+		init_t.score = randf() * current_max;
 		task_q->en(init_t);
 
 		// TODO(laekov): make it variable under server's control
 		static const int group_size = 1003;
-		static const int mutate_const = 10;
-		static const int combine_const = 10;
+		static const int mutate_const = 40;
+		static const int combine_const = 4;
 		static const int max_iter = 100;
 		static const double spread_ratio = 0.7;
 
 		vector<Task> survivor;
 		for (int cnt = 0; ; ++ cnt) {
-			if (cnt % 97 == 96) {
+			if (cnt % 331 == 0) {
+				Task init_t;
+				init_t.gene = engine.initial();
+				init_t.score = randf() * current_max;
+				task_q->en(init_t);
+			} else if (cnt % 97 == 96) {
 				for (auto it: survivor) {
 					if (it.score > current_max * spread_ratio) {
 						spread_que.en(it);
@@ -188,7 +193,7 @@ namespace DGEBC {
 				for (int j = 0; j < num_mutate; ++ j) {
 					Task d;
 					d.gene = c.gene;
-					for (int k = rand() % 10 + 1; k; -- k) {
+					for (int k = rand() % 100 + 1; k; -- k) {
 						d.gene = engine.mutate(d.gene);
 					}
 					d.score = c.score * randf() * 2;
@@ -232,20 +237,20 @@ namespace DGEBC {
 						int k(rand() % survivor.size());
 						int sel_score(survivor[k].score * 10000 + 1);
 						int c_score(c.score * 10000 + 1);
-						if (survivor[k].score < c.score) {
+						/* if (survivor[k].score < c.score) {
 							sel_score = 0;
-						}
+						} */
 						if (rand() % (sel_score + c_score) < c_score) {
 							survivor[k] = c;
 						}
 					}
+					dumpGene(c);
 				}
 
 				if (c.score > current_max) {
 					current_max = c.score;
 					dgebc_log() << "Found new best" 
 						<< " score " << c.score << "\n";
-					dumpGene(c);
 				}
 			}
 		}
