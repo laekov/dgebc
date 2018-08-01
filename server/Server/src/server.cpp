@@ -12,7 +12,7 @@ Server::Server(QObject *parent) : HttpRequestHandler(parent)
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(heartBeat()));
-    timer->start(ONE_SECOND);
+    timer->start(ONE_SECOND * 10);
 
     mutex.unlock();
 }
