@@ -216,7 +216,9 @@ namespace DGEBC {
 				}
 
 				/* compete against the surviving group */
-				if (survivor.size() < group_size) {
+				if (c.outcomer) {
+					/* do nothing as outcomer */
+				} if (survivor.size() < group_size) {
 					survivor.push_back(c);
 				} else {
 					bool fnd(0);

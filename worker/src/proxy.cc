@@ -30,6 +30,7 @@ namespace DGEBC {
 				mg_get_var(ri->query_string, data_len, "score",
 						   buf, sizeof(buf));
 				t.score = atof(buf);
+				t.outcomer = 1;
 				if (t.gene.length() != 320) {
 					sprintf(buf, "Bad request\n");
 				} else {
