@@ -95,11 +95,6 @@ namespace DGEBC {
 	}
 
 	void spreadGene(Task t) {
-		static set<string> sent_gene;
-		if (sent_gene.find(t.gene) != sent_gene.end()) {
-			return;
-		}
-		sent_gene.insert(t.gene);
 		char buf[4096];
 		struct mg_connection *conn;
 		for (auto i: fellows) {

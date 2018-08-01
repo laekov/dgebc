@@ -8,6 +8,8 @@ window.chartColors = {
 	grey: 'rgb(201, 203, 207)'
 };
 
+var colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'grey'];
+
 var randomScalingFactor = function() {
 	return Math.random();
 };
@@ -25,8 +27,6 @@ var config = {
 				randomScalingFactor(),
 				randomScalingFactor(),
 				randomScalingFactor(),
-				randomScalingFactor(),
-				randomScalingFactor(),
 				randomScalingFactor()
 			],
 		}]
@@ -34,8 +34,7 @@ var config = {
 	options: {
 		responsive: true,
 		title: {
-			display: true,
-			text: 'Chart.js Line Chart'
+			display: false,
 		},
 		tooltips: {
 			mode: 'index',
@@ -64,50 +63,60 @@ var config = {
 	}
 };
 
-var fakeHosts = {
-	'10.10.10.1:1234': {
-		color: window.chartColors.red,
-		recs: {}
-	},
-	'10.10.10.2:2334': {
-		color: window.chartColors.blue,
-		recs: {}
-	}
+var workers = {
 };
 
 
 var updateDiagram = function() {
-	for (var i in fakeHosts) {
-		var t = Math.floor(Date.now() / 1000);
-		fakeHosts[i].recs[t] = Math.random() * 100;
-	}
-	var dataset = [];
-	var tend = Math.floor(Date.now() / 1000);
-	for (var i in fakeHosts) {
-		var data = {
-			label: i,
-			fill: false,
-			backgroundColor: fakeHosts[i].color,
-			borderColor: fakeHosts[i].color,
-			data: []
-		};
-		for (var j = 99; j >= 0; -- j) {
-			if (fakeHosts[i].recs[tend - j] != undefined) {
-				data.data.push(fakeHosts[i].recs[tend - j]);
-			} else {
-				data.data.push(0);
+	$.post('/get_gene', function(raw_data) {
+		var lines = raw_data.split(';');
+		for (var i in lines) {
+			var name_content = lines[i].split('#');
+			if (name_content.length < 2) {
+				continue;
 			}
+			var name = name_content[0];
+			var speed = parseInt(name_content[1].split(',')[0]);
+			if (!(name in workers)) {
+				var colorid = Math.floor(Math.random() * colors.length);
+				workers[name] = {
+					color: window.chartColors[colors[colorid]],
+					recs: {}
+				};
+			}
+			var tm = Math.floor(Date.now() / 1000);
+			workers[name].recs[tm] = speed;
 		}
-		dataset.push(data);
-	}
-	var labels = [];
-	for (var j = 99; j >= 0; -- j) {
-		var d = new Date((tend - j)* 1000);
-			labels.push(d.toTimeString());
-	}
-	config.data.datasets = dataset;
-	config.data.labels = labels;
-	window.myLine.update();
+		var dataset = [];
+		var tend = Math.floor(Date.now() / 1000);
+		for (var i in workers) {
+			var data = {
+				label: i,
+				fill: false,
+				backgroundColor: workers[i].color,
+				borderColor: workers[i].color,
+				data: []
+			};
+            var last = undefined;
+			for (var j = 99; j >= 0; -- j) {
+				if (workers[i].recs[tend - j] != undefined) {
+					data.data.push(workers[i].recs[tend - j]);
+                    last = workers[i].recs[tend - j];
+				} else {
+					data.data.push(last);
+				}
+			}
+			dataset.push(data);
+		}
+		var labels = [];
+		for (var j = 99; j >= 0; -- j) {
+			var d = new Date((tend - j)* 1000);
+			labels.push(d.toTimeString().substr(0, 8));
+		}
+		config.data.datasets = dataset;
+		config.data.labels = labels;
+		window.myLine.update();
+	});
 };
 
 window.onload = function() {
@@ -115,10 +124,11 @@ window.onload = function() {
 	Chart.defaults.global.animation.duration=0;
 	window.myLine = new Chart(ctx, config);
 
-	for (var i in fakeHosts) {
+	for (var i in workers) {
 		var t = Math.floor(Date.now() / 1000);
-		fakeHosts[i].recs[t] = Math.random() * 100;
+		workers[i].recs[t] = Math.random() * 100;
 	}
 
-	setInterval(updateDiagram, 1000);
+	setInterval(updateDiagram, 800);
 };
+

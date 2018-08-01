@@ -92,7 +92,7 @@ void Server::service(HttpRequest &request, HttpResponse &response)
 
         for (QMap<QUrl, Worker>::iterator it = allActiveWorkers.begin(); it != allActiveWorkers.end(); it++)
         {
-            response.write(QString("%1:%2,")
+            response.write(QString("%1#%2,")
                            .arg(QString(it.value().url.toString()))
                            .arg(QString(it.value().speed)).toLatin1(), false);
 
@@ -130,6 +130,30 @@ void Server::service(HttpRequest &request, HttpResponse &response)
         mutex.unlock();
         response.write("", true);
     }
+    else if (path == "/monitor")
+	{
+		FILE* inf = fopen("../../monitor/monitor.html", "r");
+		char buf[8192];
+		size_t sz;
+		while (sz = fread(buf, 1, sizeof(buf) - 1, inf)) {
+			buf[sz] = 0;
+			response.write(QByteArray(buf), 0);
+		}
+		fclose(inf);
+		response.write(QByteArray(""), 1);
+	}
+    else if (path == "/paint.js")
+	{
+		FILE* inf = fopen("../../monitor/paint.js", "r");
+		char buf[8192];
+		size_t sz;
+		while (sz = fread(buf, 1, sizeof(buf) - 1, inf)) {
+			buf[sz] = 0;
+			response.write(QByteArray(buf), 0);
+		}
+		fclose(inf);
+		response.write(QByteArray(""), 1);
+	}
     else
     {
         response.write("Server: unknown url", true);
